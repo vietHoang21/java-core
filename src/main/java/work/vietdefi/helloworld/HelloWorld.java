@@ -9,5 +9,6 @@ public class HelloWorld {
     public static void main(String[] args){
         DOMConfigurator.configure("config/log/log4j.xml");
         logger.info("Hello world, Java");
+        //fix commit message
     }
 }
