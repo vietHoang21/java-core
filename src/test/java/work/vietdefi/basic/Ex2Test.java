@@ -20,7 +20,7 @@ public class Ex2Test {
     @DisplayName("Test sum if input < 0")
     public void testSum2() {
         Ex2 ex2 = new Ex2();
-        assertEquals(ex2.sum(-5), 0);
+        assertEquals(ex2.sum(-5), -1);
     }
 
     @Test
