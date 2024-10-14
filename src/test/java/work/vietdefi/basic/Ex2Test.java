@@ -19,9 +19,8 @@ public class Ex2Test {
     @Test
     @DisplayName("Test sum if input < 0")
     public void testSum2() {
-        //TODO: implement this
         Ex2 ex2 = new Ex2();
-        assertNotEquals(ex2.sum(-5), -15);
+        assertEquals(ex2.sum(-5), 0);
     }
 
     @Test
