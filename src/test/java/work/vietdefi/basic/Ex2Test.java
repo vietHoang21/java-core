@@ -15,4 +15,28 @@ public class Ex2Test {
         Ex2 ex2 = new Ex2();
         assertEquals(ex2.sum(5), 15);
     }
+
+    @Test
+    @DisplayName("Test sum if input < 0")
+    public void testSum2() {
+        //TODO: implement this
+        Ex2 ex2 = new Ex2();
+        assertNotEquals(ex2.sum(-5), -15);
+    }
+
+    @Test
+    @DisplayName("Test sum if input = 0")
+    public void testSum3() {
+        //TODO: implement this
+        Ex2 ex2 = new Ex2();
+        assertEquals(ex2.sum(0), 0);
+    }
+
+    @Test
+    @DisplayName("Test sum if input = 1")
+    public void testSum4() {
+        //TODO: implement this
+        Ex2 ex2 = new Ex2();
+        assertEquals(ex2.sum(1), 1);
+    }
 }
