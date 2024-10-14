@@ -8,14 +8,12 @@ public class Ex2 {
      * @return the sum from 1 to input
      */
     public int sum(int input){
-        if (input >=0){
+        if(input < 0) return 0;
             int total = 0;
             for (int i = 1; i <= input; i++){
                 total += i;
             }
             return total;
-        }
-        return -1;
     }
 
 }
