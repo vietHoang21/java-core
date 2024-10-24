@@ -14,4 +14,12 @@ public class SelectionSorterTest {
         int[] actualArray = {1, 8, 14, 18, 24, 28, 55, 72, 73, 80};
         assertArrayEquals(sorter.sort(test), actualArray);
     }
+    @Test
+    @DisplayName("selection sort")
+    public void sort1() {
+        Sorter sorter = new SelectionSorter();
+        int[] test = {1};
+        int[] actualArray = {1};
+        assertArrayEquals(sorter.sort(test), actualArray);
+    }
 }
