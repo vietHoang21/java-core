@@ -3,6 +3,7 @@ package work.vietdefi.dsa.sort;
 public class MergeSorter implements Sorter {
     @Override
     public int[] sort(int[] values) {
+        if(values.length <= 1) return  values;
         int l = 0;
         int r = values.length - 1;
         MergeSorter s = new MergeSorter();
