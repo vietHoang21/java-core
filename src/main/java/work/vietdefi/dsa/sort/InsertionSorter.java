@@ -3,7 +3,7 @@ package work.vietdefi.dsa.sort;
 public class InsertionSorter implements Sorter{
     @Override
     public int[] sort(int[] values) {
-        if(values.length <= 1) return null;
+        if(values.length <= 1) return  values;
         for (int i = 1; i < values.length; i++) {
             int temp = values[i];
             int j = i - 1;
