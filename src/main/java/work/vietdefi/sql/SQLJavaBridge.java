@@ -35,6 +35,18 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public boolean checkTableExisting(String table) {
+        String query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = ?";
+        try (Connection connection = hikariClient.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, table);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                return resultSet.getInt(1) > 0; // Return true if the count is greater than 0
+            }
+        } catch (SQLException e) {
+            e.printStackTrace(); // Handle any SQL exceptions
+        }
+        return false; // Table does not exist
     }
 
 
@@ -53,6 +65,55 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public boolean createTable(String createTableSQL, String... createIndexSql) {
+        Connection connection = null; // Declare the connection variable outside the try block
+        try {
+            // Obtain a connection from the HikariClient to interact with the database
+            connection = hikariClient.getConnection();
+            // Set auto-commit false to manage transactions manually
+            connection.setAutoCommit(false);
+
+            // Prepare the SQL statement for creating the table
+            try (PreparedStatement statement = connection.prepareStatement(createTableSQL)) {
+                // Execute the SQL statement to create the table
+                statement.executeUpdate(); // This will throw an exception if the creation fails
+            }
+
+            // If there are index creation SQL statements provided
+            for (String indexSQL : createIndexSql) {
+                // Prepare the SQL statement for creating the index
+                try (PreparedStatement indexStatement = connection.prepareStatement(indexSQL)) {
+                    // Execute the SQL statement to create the index
+                    indexStatement.executeUpdate(); // This will throw an exception if the index creation fails
+                }
+            }
+
+            // If all operations are successful, commit the transaction
+            connection.commit(); // Save changes to the database
+            return true; // Return true indicating successful creation of the table and indexes
+        } catch (SQLException e) {
+            // Print the stack trace for debugging if an SQL exception occurs
+            e.printStackTrace();
+            // Attempt to roll back the transaction in case of error to maintain database integrity
+            try {
+                if (connection != null) { // Check if the connection is not null before attempting rollback
+                    connection.rollback(); // Revert all changes made during the transaction
+                }
+            } catch (SQLException rollbackException) {
+                // Print the stack trace for rollback exceptions
+                rollbackException.printStackTrace();
+            }
+        } finally {
+            // Ensure the connection is closed after operations are complete
+            if (connection != null) {
+                try {
+                    connection.close(); // Close the connection to release database resources
+                } catch (SQLException closeException) {
+                    closeException.printStackTrace(); // Print the stack trace if closing fails
+                }
+            }
+        }
+        // Return false indicating failure to create the table or indexes due to an error
+        return false;
     }
 
 
@@ -65,6 +126,14 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public JsonObject convertResultSetToJsonObject(ResultSet resultSet) throws SQLException {
+        JsonObject jsonObject = new JsonObject(); // Create a new JsonObject
+        int columnCount = resultSet.getMetaData().getColumnCount(); // Get the number of columns
+        // Loop through each column and add it to the JsonObject
+        for (int i = 1; i <= columnCount; i++) {
+            String columnName = resultSet.getMetaData().getColumnName(i);
+            jsonObject.addProperty(columnName, resultSet.getString(i));
+        }
+        return jsonObject; // Return the populated JsonObject
     }
 
 
@@ -77,6 +146,12 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public JsonArray convertResultSetToJsonArray(ResultSet resultSet) throws SQLException {
+        JsonArray jsonArray = new JsonArray(); // Create a new JsonArray
+        // Loop through each row in the ResultSet and convert it to JsonObject
+        while (resultSet.next()) {
+            jsonArray.add(convertResultSetToJsonObject(resultSet));
+        }
+        return jsonArray; // Return the populated JsonArray
     }
 
 
@@ -90,6 +165,15 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public JsonObject queryOne(String query, Object... params) throws Exception {
+        try (Connection connection = hikariClient.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            setParameters(statement, params); // Bind parameters to the statement
+            ResultSet resultSet = statement.executeQuery(); // Execute the query
+            if (resultSet.next()) {
+                return convertResultSetToJsonObject(resultSet); // Convert result to JsonObject
+            }
+        }
+        return null; // No results found
     }
 
 
@@ -103,6 +187,12 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public JsonArray queryArray(String query, Object... params) throws Exception {
+        try (Connection connection = hikariClient.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            setParameters(statement, params); // Bind parameters to the statement
+            ResultSet resultSet = statement.executeQuery(); // Execute the query
+            return convertResultSetToJsonArray(resultSet); // Convert result set to JsonArray
+        }
     }
 
 
@@ -116,6 +206,16 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public Object insert(String query, Object... params) throws Exception {
+        try (Connection connection = hikariClient.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            setParameters(statement, params); // Bind parameters to the statement
+            statement.executeUpdate(); // Execute the insert statement
+            ResultSet generatedKeys = statement.getGeneratedKeys(); // Retrieve generated keys
+            if (generatedKeys.next()) {
+                return generatedKeys.getObject(1); // Return the first generated key
+            }
+        }
+        return null; // No key generated
     }
 
 
@@ -129,7 +229,11 @@ public class SQLJavaBridge implements ISQLJavaBridge {
      */
     @Override
     public int update(String query, Object... params) throws Exception {
-
+        try (Connection connection = hikariClient.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            setParameters(statement, params); // Bind parameters to the statement
+            return statement.executeUpdate(); // Return the number of rows affected
+        }
     }
 
 
