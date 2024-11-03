@@ -171,7 +171,7 @@ public class UserService implements IUserService {
      * Authorizes a user by validating the provided authentication token.
      *
      * @param token The token to be verified for authorization.
-     * @return A JsonObject indicating whether the token is valid or expired, along with any relevant data.
+     * @return A JsonObject indicating whether the token is valid or expired, along with any relevant data..
      */
     @Override
     public JsonObject authorization(String token) {

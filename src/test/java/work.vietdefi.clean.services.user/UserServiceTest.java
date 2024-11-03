@@ -134,7 +134,7 @@ public class UserServiceTest {
 
         // Extract the error code from the response.
         int error = fakeResponse.get("e").getAsInt();
-
+        //
         // Verify that the error code indicates an invalid token (e = 10).
         assertEquals(10, error);
     }
