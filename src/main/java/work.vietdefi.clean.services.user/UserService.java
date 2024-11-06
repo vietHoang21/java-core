@@ -196,5 +196,24 @@ public class UserService implements IUserService {
             return SimpleResponse.createResponse(1);
         }
     }
+
+    @Override
+    public JsonObject get(long user_id) {
+        try{
+            String query = new StringBuilder("SELECT * FROM ")
+                    .append(table)
+                    .append(" WHERE user_id = ?")
+                    .toString();
+            JsonObject data = bridge.queryOne(query, user_id);
+            if(data == null){
+                return SimpleResponse.createResponse(10);
+            }
+            data.remove("password");
+            return SimpleResponse.createResponse(0, data);
+        }catch (Exception e){
+            DebugLogger.logger.error("", e);
+            return SimpleResponse.createResponse(1);
+        }
+    }
 }
 
